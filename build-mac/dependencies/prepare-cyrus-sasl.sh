@@ -113,7 +113,8 @@ cd "$srcdir/$ARCHIVE"
 export LANG=en_US.US-ASCII
 
 LIB_NAME=$ARCHIVE
-TARGETS="iPhoneOS iPhoneSimulator"
+# TARGETS="iPhoneOS iPhoneSimulator"
+TARGETS="iPhoneOS"
 
 SDK_IOS_MIN_VERSION=7.0
 SDK_IOS_VERSION="`xcodebuild -showsdks 2>/dev/null | grep iphoneos | sed 's/.*iphoneos\(.*\)/\1/'`"
@@ -149,7 +150,17 @@ function build_target {
   OPENSSL="--with-openssl=$BUILD_DIR/openssl-1.0.0d/universal"
   PLUGINS="--enable-otp=no --enable-digest=no --with-des=no --enable-login"
   ./configure --host=${ARCH} --prefix=$PREFIX --enable-shared=no --enable-static=yes --with-pam=$BUILD_DIR/openpam-20071221/universal $PLUGINS >> "$current_logfile" 2>&1
+
+  sleep 1
+
+  echo "start to make" >> "$current_logfile" 2>&1
+  echo "start to make"
+
+  make clean
   make -j 8 >> "$current_logfile" 2>&1
+
+  echo "make finish"
+  
   if [[ "$?" != "0" ]]; then
     echo "CONFIGURE FAILED"
     cat "$current_logfile"
@@ -185,12 +196,15 @@ for TARGET in $TARGETS; do
         (iPhoneOS)
             ARCH=arm
             MARCHS="armv7 armv7s arm64"
+	    MARCHS="arm64"
+
             EXTRA_FLAGS="$BITCODE_FLAGS -miphoneos-version-min=$SDK_IOS_MIN_VERSION"
             TARGET_SUFFIX=""
             ;;
         (iPhoneSimulator)
             ARCH=i386
             MARCHS="i386 x86_64 arm64"
+            MARCHS="x86_64 arm64"
             EXTRA_FLAGS="$BITCODE_FLAGS -miphoneos-version-min=$SDK_IOS_MIN_VERSION"
             TARGET_SUFFIX="-simulator"
             ;;
@@ -235,10 +249,10 @@ for lib in $ALL_LIBS; do
     mkdir -p "$(dirname "$output")"
     lipo -create ${LIBS} -output "$output"
 
-    LIBS="${BUILD_DIR}/${LIB_NAME}/iPhoneSimulator${SDK_IOS_VERSION}*/lib/${lib}"
-    output="${INSTALL_PATH}/lib/iphonesimulator/${lib}"
-    mkdir -p "$(dirname "$output")"
-    lipo -create ${LIBS} -output "$output"
+    # LIBS="${BUILD_DIR}/${LIB_NAME}/iPhoneSimulator${SDK_IOS_VERSION}*/lib/${lib}"
+    # output="${INSTALL_PATH}/lib/iphonesimulator/${lib}"
+    # mkdir -p "$(dirname "$output")"
+    # lipo -create ${LIBS} -output "$output"
 done
 
 echo "*** creating built package ***" >> "$logfile" 2>&1
